@@ -84,8 +84,31 @@ express.post('/Login', function(req,res){
         })
 })
 
+//Middleware Logic to validate credentials
+function ValidateCredentials(req,res,next) //next is handler for callback
+{
+    //console.log("I am middleware");
+    if(!req.headers.gatepass)
+    {
+        return res.status(401).send("Unauthorized request");
+    }
+ 
+
+    let temp = req.headers.gatepass.split(' ')[1];
+    //console.log(temp);
+    if(temp == 405)
+    {
+        next();
+    }
+    else{
+        console.log("Unauthorized");
+    }
+   // next();
+    
+}
+
 //Home
-express.get('/Home',function(req,res){
+express.get('/Home',ValidateCredentials,function(req,res){  //called middleware
     let data = [
         {
             "id":"1",
