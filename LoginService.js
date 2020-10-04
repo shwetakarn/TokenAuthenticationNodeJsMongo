@@ -77,7 +77,13 @@ express.post('/Login', function(req,res){
                         res.status(401).send("Invalid Password");
                     }
                     else{
-                        res.status(200).send(document);
+                        //generating token on successfull login
+                        let payload = {
+                            subject: document._id
+                        };
+                        let token = jwt.sign(payload, 'SecretKey');
+                        //res.status(200).send(document);
+                        res.status(200).send({token});
                     }
                 }
             }
@@ -88,23 +94,46 @@ express.post('/Login', function(req,res){
 function ValidateCredentials(req,res,next) //next is handler for callback
 {
     //console.log("I am middleware");
-    if(!req.headers.gatepass)
+    // if(!req.headers.gatepass)
+    // {
+    //     return res.status(401).send("Unauthorized request");
+    // }
+ 
+
+    // let temp = req.headers.gatepass.split(' ')[1];
+    // //console.log(temp);
+    // if(temp == 405)
+    // {
+    //     next();
+    // }
+    // else{
+    //     console.log("Unauthorized");
+    // }
+   // next();
+
+   if(!req.headers.authorization)
+   {
+       return res.status(401).send("Unauthorized request");
+   }
+    let token = req.headers.authorization.split(' ')[1];
+    //console.log(token);
+    if(token == 'null')
     {
         return res.status(401).send("Unauthorized request");
     }
- 
-
-    let temp = req.headers.gatepass.split(' ')[1];
-    //console.log(temp);
-    if(temp == 405)
-    {
-        next();
-    }
     else{
-        console.log("Unauthorized");
+        let payload = jwt.verify(token,'SecretKey', function(err,decode){
+            if(err)
+            {
+                return res.status(401).send("Unauthorized Request");
+            }
+            else{
+                req.userId = decode.subject;
+                next();
+            }
+        });
+
     }
-   // next();
-    
 }
 
 //Home
